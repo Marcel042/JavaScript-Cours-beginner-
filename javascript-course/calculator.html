@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Calculator</title>
+<style>
+  /* ---------- Basic page setup ---------- */
+  * {
+    box-sizing: border-box; /* padding/border included in element width, avoids layout surprises */
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #6a5af9, #d66efd);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+  }
+
+  /* ---------- The calculator "card" ---------- */
+  .calculator {
+    background: #1e1e2f;
+    border-radius: 20px;
+    padding: 20px;
+    width: 320px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+
+  /* ---------- The screen that shows numbers ---------- */
+  .display {
+    background: #14141f;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    text-align: right;
+    color: #fff;
+    overflow-x: auto; /* long numbers scroll instead of breaking layout */
+  }
+
+  .display .previous {
+    font-size: 14px;
+    color: #888;
+    min-height: 18px;
+  }
+
+  .display .current {
+    font-size: 32px;
+    font-weight: 600;
+  }
+
+  /* ---------- Button grid ---------- */
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  button {
+    border: none;
+    border-radius: 12px;
+    padding: 18px 0;
+    font-size: 18px;
+    cursor: pointer;
+    background: #2c2c3e;
+    color: #fff;
+    transition: background 0.15s;
+  }
+
+  button:hover {
+    background: #3a3a52;
+  }
+
+  button.operator {
+    background: #6a5af9;
+  }
+
+  button.operator:hover {
+    background: #5847e8;
+  }
+
+  button.equals {
+    background: #ff8a5c;
+    grid-column: span 2;
+  }
+
+  button.equals:hover {
+    background: #ff7a42;
+  }
+
+  button.clear, button.delete {
+    background: #444459;
+  }
+
+  button.zero {
+    grid-column: span 2;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator">
+  <!-- The "screen" - shows the running expression and the current number -->
+  <div class="display">
+    <div class="previous" id="previousDisplay"></div>
+    <div class="current" id="currentDisplay">0</div>
+  </div>
+
+  <!-- The button grid. Each button calls a JS function via onclick -->
+  <div class="buttons">
+    <button class="clear" onclick="clearAll()">AC</button>
+    <button class="delete" onclick="deleteLast()">DEL</button>
+    <button class="operator" onclick="chooseOperator('%')">%</button>
+    <button class="operator" onclick="chooseOperator('÷')">÷</button>
+
+    <button onclick="appendNumber('7')">7</button>
+    <button onclick="appendNumber('8')">8</button>
+    <button onclick="appendNumber('9')">9</button>
+    <button class="operator" onclick="chooseOperator('×')">×</button>
+
+    <button onclick="appendNumber('4')">4</button>
+    <button onclick="appendNumber('5')">5</button>
+    <button onclick="appendNumber('6')">6</button>
+    <button class="operator" onclick="chooseOperator('-')">-</button>
+
+    <button onclick="appendNumber('1')">1</button>
+    <button onclick="appendNumber('2')">2</button>
+    <button onclick="appendNumber('3')">3</button>
+    <button class="operator" onclick="chooseOperator('+')">+</button>
+
+    <button class="zero" onclick="appendNumber('0')">0</button>
+    <button onclick="appendNumber('.')">.</button>
+    <button class="equals" onclick="calculate()">=</button>
+  </div>
+</div>
+
+<script>
+  /* =========================================================
+     STEP 1: Set up variables to hold the calculator's "state"
+     =========================================================
+     - currentValue: the number currently being typed
+     - previousValue: the number entered before an operator was pressed
+     - operator: which math operation was chosen (+, -, ×, ÷, %)
+     - shouldResetScreen: a flag so that after pressing "=" or an
+       operator, the next number typed starts fresh instead of
+       appending to the old result
+  */
+  let currentValue = '0';
+  let previousValue = '';
+  let operator = null;
+  let shouldResetScreen = false;
+
+  // Grab references to the two display elements once, so we don't
+  // have to search the page every time we update the screen.
+  const currentDisplay = document.getElementById('currentDisplay');
+  const previousDisplay = document.getElementById('previousDisplay');
+
+  /* =========================================================
+     STEP 2: Update the screen
+     =========================================================
+     This function just copies our JS variables onto the page.
+     It's called every time something changes, so the display
+     always matches the current state.
+  */
+  function updateDisplay() {
+    currentDisplay.textContent = currentValue;
+    previousDisplay.textContent = previousValue
+      ? `${previousValue} ${operator}`
+      : '';
+  }
+
+  /* =========================================================
+     STEP 3: Handle number button presses
+     =========================================================
+     - If the screen needs resetting (right after "=" or an operator),
+       clear it first so we don't append to old digits.
+     - Prevent multiple decimal points in the same number.
+     - Replace a lone "0" with the typed digit instead of showing "01".
+  */
+  function appendNumber(digit) {
+    if (shouldResetScreen) {
+      currentValue = '';
+      shouldResetScreen = false;
+    }
+
+    // Stop the user from typing a second decimal point
+    if (digit === '.' && currentValue.includes('.')) return;
+
+    // Replace a leading zero, e.g. "0" + "5" -> "5" (not "05")
+    if (currentValue === '0' && digit !== '.') {
+      currentValue = digit;
+    } else {
+      currentValue += digit;
+    }
+
+    updateDisplay();
+  }
+
+  /* =========================================================
+     STEP 4: Handle operator button presses (+, -, ×, ÷, %)
+     =========================================================
+     - If there's already a previous value AND an operator waiting,
+       calculate that first (so 5 + 3 + 2 works left-to-right).
+     - Store the current number as "previousValue".
+     - Remember which operator was chosen.
+     - Flag the screen to reset so the next digit starts a new number.
+  */
+  function chooseOperator(op) {
+    if (operator !== null && !shouldResetScreen) {
+      calculate(); // resolve the pending operation first
+    }
+
+    previousValue = currentValue;
+    operator = op;
+    shouldResetScreen = true;
+    updateDisplay();
+  }
+
+  /* =========================================================
+     STEP 5: Perform the actual math when "=" is pressed
+     =========================================================
+     - Convert the text strings into real numbers with parseFloat.
+     - Use a switch statement to run the correct operation.
+     - Store the result back into currentValue so it displays,
+       then clear operator/previousValue since the calculation is done.
+  */
+  function calculate() {
+    if (operator === null || previousValue === '') return;
+
+    const prev = parseFloat(previousValue);
+    const current = parseFloat(currentValue);
+    let result;
+
+    switch (operator) {
+      case '+':
+        result = prev + current;
+        break;
+      case '-':
+        result = prev - current;
+        break;
+      case '×':
+        result = prev * current;
+        break;
+      case '÷':
+        // Guard against dividing by zero
+        result = current === 0 ? 'Error' : prev / current;
+        break;
+      case '%':
+        result = prev % current;
+        break;
+      default:
+        return;
+    }
+
+    // Round tiny floating-point errors (e.g. 0.1 + 0.2 = 0.30000000004)
+    if (typeof result === 'number') {
+      result = Math.round(result * 100000) / 100000;
+    }
+
+    currentValue = result.toString();
+    operator = null;
+    previousValue = '';
+    shouldResetScreen = true;
+    updateDisplay();
+  }
+
+  /* =========================================================
+     STEP 6: Clear everything (the "AC" button)
+     =========================================================
+     Reset every piece of state back to its starting point.
+  */
+  function clearAll() {
+    currentValue = '0';
+    previousValue = '';
+    operator = null;
+    shouldResetScreen = false;
+    updateDisplay();
+  }
+
+  /* =========================================================
+     STEP 7: Delete the last typed character (the "DEL" button)
+     =========================================================
+     Removes one character at a time; if the number becomes
+     empty, show "0" instead of a blank screen.
+  */
+  function deleteLast() {
+    currentValue = currentValue.slice(0, -1);
+    if (currentValue === '') currentValue = '0';
+    updateDisplay();
+  }
+
+  // Draw the initial "0" on the screen when the page first loads
+  updateDisplay();
+</script>
+
+</body>
+</html>

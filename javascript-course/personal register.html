@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- Makes the page responsive on mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Register - Brand</title>
+
+    <!-- ================= CSS ================= -->
+    <style>
+        /* Basic page reset / font setup */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            /* Gradient background used instead of Bootstrap's bg-gradient-primary */
+            background: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* The white card that holds the whole form */
+        .card {
+            background: #fff;
+            border-radius: 0.75rem;
+            overflow: hidden; /* keeps the image's corners rounded like the card */
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.15);
+        }
+
+        .card-body {
+            padding: 0;
+        }
+
+        /* Flex row that holds the image column + form column */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        /* Left decorative image column - hidden on small screens */
+        .col-image {
+            flex: 0 0 42%;
+            max-width: 42%;
+            background-image: url("assets.jpeg");
+            background-size: cover;
+            background-position: center;
+            min-height: 100%;
+        }
+
+        /* Right form column */
+        .col-form {
+            flex: 1;
+            padding: 3rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        h4.title {
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        .credit {
+            font-weight: bold;
+            font-size: 14.376px;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Two-column layout for First/Last Name and Password/Repeat Password */
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d3e2;
+            border-radius: 10rem; /* pill-shaped inputs, similar to "form-control-user" style */
+            font-size: 0.9rem;
+            transition: border-color 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+
+        /* Highlights a field red when validation fails (added via JS) */
+        .form-control.is-invalid {
+            border-color: #e74a3b;
+        }
+
+        .error-message {
+            color: #e74a3b;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: none; /* shown via JS when there's an error */
+        }
+
+        .btn-register {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            background: #4e73df;
+            color: #fff;
+            border: none;
+            border-radius: 10rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease-in-out;
+        }
+
+        .btn-register:hover {
+            background: #2e59d9;
+        }
+
+        .btn-register:disabled {
+            background: #b7c2e8;
+            cursor: not-allowed;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #e3e6f0;
+            margin: 1.5rem 0;
+        }
+
+        .links {
+            text-align: center;
+        }
+
+        .links a {
+            color: #4e73df;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Hide the decorative image on smaller screens (mimics Bootstrap's d-none d-lg-flex) */
+        @media (max-width: 900px) {
+            .col-image {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+
+                <!-- Decorative image column (hidden on narrow screens via CSS media query) -->
+                <div class="col-image"></div>
+
+                <!-- Form column -->
+                <div class="col-form">
+                    <div class="text-center">
+                        <h4 class="title">Create an Account!</h4>
+                        <h4 class="credit">
+                            Created By&nbsp;<br>
+                            Nendel Shekinah .M. Longza&nbsp;<br>
+                        </h4>
+                    </div>
+
+                    <!-- id="registerForm" added so JavaScript can hook into it -->
+                    <form id="registerForm" novalidate>
+
+                        <!-- First Name / Last Name -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input class="form-control" type="text" id="firstName" placeholder="First Name" name="first_name">
+                                <div class="error-message" id="firstNameError">First name is required.</div>
+                            </div>
+                            <div class="form-group">
+                                <!-- Fixed: this now has its own unique id (exampleLastName in the original had a duplicate id bug) -->
+                                <input class="form-control" type="text" id="lastName" placeholder="Last Name" name="last_name">
+                                <div class="error-message" id="lastNameError">Last name is required.</div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <input class="form-control" type="email" id="email" placeholder="Email Address" name="email">
+                            <div class="error-message" id="emailError">Enter a valid email address.</div>
+                        </div>
+
+                        <!-- Password / Repeat Password -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input class="form-control" type="password" id="password" placeholder="Password" name="password">
+                                <div class="error-message" id="passwordError">Password must be at least 8 characters.</div>
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control" type="password" id="passwordRepeat" placeholder="Repeat Password" name="password_repeat">
+                                <div class="error-message" id="passwordRepeatError">Passwords do not match.</div>
+                            </div>
+                        </div>
+
+                        <button class="btn-register" type="submit" id="submitBtn">Register Account</button>
+
+                        <hr> <!-- Removed the duplicate <hr><hr> from the original markup, kept just one -->
+                    </form>
+
+                    <div class="links">
+                        <a href="forgot-password.html">Forgot Password?</a>
+                    </div>
+                    <div class="links">
+                        <a href="login.html">Already have an account? Login!</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- ================= JavaScript ================= -->
+    <script>
+        // Wait for the DOM to be fully loaded before wiring up events
+        document.addEventListener('DOMContentLoaded', function () {
+
+            var form = document.getElementById('registerForm');
+            var submitBtn = document.getElementById('submitBtn');
+
+            // Grab references to every input we need to validate
+            var fields = {
+                firstName: document.getElementById('firstName'),
+                lastName: document.getElementById('lastName'),
+                email: document.getElementById('email'),
+                password: document.getElementById('password'),
+                passwordRepeat: document.getElementById('passwordRepeat')
+            };
+
+            // Simple regex to check for a reasonably valid email format
+            var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            // Shows an error message under a field and highlights it red
+            function showError(field, errorId) {
+                field.classList.add('is-invalid');
+                document.getElementById(errorId).style.display = 'block';
+            }
+
+            // Clears the error state for a field
+            function clearError(field, errorId) {
+                field.classList.remove('is-invalid');
+                document.getElementById(errorId).style.display = 'none';
+            }
+
+            // Runs all validation checks; returns true if the form is valid
+            function validateForm() {
+                var isValid = true;
+
+                // First name required
+                if (fields.firstName.value.trim() === '') {
+                    showError(fields.firstName, 'firstNameError');
+                    isValid = false;
+                } else {
+                    clearError(fields.firstName, 'firstNameError');
+                }
+
+                // Last name required
+                if (fields.lastName.value.trim() === '') {
+                    showError(fields.lastName, 'lastNameError');
+                    isValid = false;
+                } else {
+                    clearError(fields.lastName, 'lastNameError');
+                }
+
+                // Email required + must match pattern
+                if (!emailPattern.test(fields.email.value.trim())) {
+                    showError(fields.email, 'emailError');
+                    isValid = false;
+                } else {
+                    clearError(fields.email, 'emailError');
+                }
+
+                // Password must be at least 8 characters
+                if (fields.password.value.length < 8) {
+                    showError(fields.password, 'passwordError');
+                    isValid = false;
+                } else {
+                    clearError(fields.password, 'passwordError');
+                }
+
+                // Repeat password must match the password field
+                if (fields.passwordRepeat.value !== fields.password.value || fields.passwordRepeat.value === '') {
+                    showError(fields.passwordRepeat, 'passwordRepeatError');
+                    isValid = false;
+                } else {
+                    clearError(fields.passwordRepeat, 'passwordRepeatError');
+                }
+
+                return isValid;
+            }
+
+            // Re-validate a single field as soon as the user leaves it (better UX than waiting for submit)
+            Object.keys(fields).forEach(function (key) {
+                fields[key].addEventListener('blur', validateForm);
+            });
+
+            // Handle form submission
+            form.addEventListener('submit', function (event) {
+                event.preventDefault(); // stop the default page reload / navigation
+
+                if (validateForm()) {
+                    // Disable the button to prevent double submissions
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Registering...';
+
+                    // Placeholder for a real API/network call.
+                    // Replace this setTimeout block with an actual fetch() to your backend.
+                    setTimeout(function () {
+                        alert('Account created successfully! (this is a demo — no data was actually sent anywhere)');
+                        form.reset();
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Register Account';
+                    }, 1000);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
